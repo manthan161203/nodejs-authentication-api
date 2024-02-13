@@ -40,9 +40,9 @@ This project is an authentication API built using Node.js, Express.js, MongoDB, 
 
 To start the server, run the following command:
 
-    ```
+    
     npm start
-    ```
+    
 
 
 The server will start running on the specified port.

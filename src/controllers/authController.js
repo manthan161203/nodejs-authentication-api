@@ -131,6 +131,10 @@ const changePassword = async (req, res) => {
         user.password = hashedPassword;
         await user.save();
 
+        const subject = 'Password Changed';
+        const text = `Your password has been successfully changed. Your new password is: ${newPassword}`;
+        await sendOTPViaEmail(user.email, subject, text);
+
         res.status(200).json({ msg: 'Password changed successfully' });
     } catch (err) {
         console.error(err.message);
@@ -185,6 +189,10 @@ const resetPassword = async (req, res) => {
         user.password = hashedPassword;
         user.otp = undefined;
         await user.save();
+
+        const subject = 'Password Reset Successful';
+        const text = `Your password has been successfully reset. Your new password is: ${newPassword}`;
+        await sendOTPViaEmail(email, subject, text);
 
         res.status(200).json({ message: 'Password reset successful' });
     } catch (error) {

@@ -28,6 +28,17 @@ router.post('/change-password', verifyToken, [
     check('newPassword', 'New password is required').notEmpty().isLength({ min: 6 })
 ], authController.changePassword);
 
+// send OTP via Mail for forget password
+router.post('/forget-password', [
+    check('email', 'Please enter a valid email').notEmpty(),
+], authController.forgotPassword);
+
+// reset password
+router.post('/reset-password', [
+    check('email', 'Please enter a valid email').notEmpty(),
+    check('newPassword', 'New password is required').notEmpty().isLength({ min: 6 })
+], authController.resetPassword);
+
 // View profile route
 router.post('/profile', verifyToken, authController.viewProfile);
 

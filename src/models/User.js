@@ -29,6 +29,9 @@ const userSchema = new mongoose.Schema({
     },
     age: {
         type: Number
+    },
+    otp: {
+        type: String,
     }
 });
 

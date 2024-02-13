@@ -10,7 +10,7 @@ router.post('/register', [
     check('username', 'Please enter a valid username').not().isEmpty(),
     check('email', 'Please enter a valid email').isEmail(),
     check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 }),
-    check('phoneNumber', 'Please enter a valid phone number').isMobilePhone(),
+    check('phoneNumber', 'Please enter a valid phone number').isLength({min: 10}),
     check('firstName', 'Please enter a valid first name').not().isEmpty(),
     check('lastName', 'Please enter a valid last name').not().isEmpty()
 ], authController.register);

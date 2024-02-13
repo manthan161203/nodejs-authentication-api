@@ -28,4 +28,10 @@ router.post('/change-password', verifyToken, [
     check('newPassword', 'New password is required').notEmpty().isLength({ min: 6 })
 ], authController.changePassword);
 
+// View profile route
+router.post('/profile', verifyToken, authController.viewProfile);
+
+// View user list
+router.post('/users', verifyToken, authController.getAllUsers);
+
 module.exports = router;

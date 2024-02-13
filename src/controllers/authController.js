@@ -131,9 +131,45 @@ const changePassword = async (req, res) => {
     }
 };
 
+const viewProfile = async (req, res) => {
+    try {
+        const { emailOrUsername } = req.body;
+
+        const user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: emailOrUsername }] }).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        res.status(200).json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// Controller function to get all users
+const getAllUsers = async (req, res) => {
+    try {
+
+        const users = await User.find().select('-password');
+
+        if (!users) {
+            return res.status(404).json({ message: 'No users found' });
+        }
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     jwtSecret,
     register,
     login,
-    changePassword
+    changePassword,
+    viewProfile,
+    getAllUsers
 };

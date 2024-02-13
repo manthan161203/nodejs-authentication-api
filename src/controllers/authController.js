@@ -1,28 +1,30 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+
 const { validationResult } = require('express-validator');
 const sendOTPViaEmail = require('../services/nodeMailer');
 
 const User = require('../models/User');
 
-
 // To generate a secure secret key
 const jwtSecret = crypto.randomBytes(32).toString('hex');
 
-// Function to generate JWT token
+// Controller function to generate JWT token
 const generateToken = (user) => {
     return jwt.sign({ id: user.id }, jwtSecret, {
         expiresIn: process.env.JWT_EXPIRES_IN
     });
 };
 
-// Function to generate OTP
+// Controller function to generate OTP
 const generateOTP = () => {
+    // Generating a random 4-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     return otp;
 };
 
+// Controller function to register a new user
 const register = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -35,12 +37,10 @@ const register = async (req, res) => {
 
         let user = await User.findOne({ username });
 
-        // Check if user already exists
         if (user) {
             return res.status(400).json({ msg: 'User already exists' });
         }
 
-        // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -55,7 +55,6 @@ const register = async (req, res) => {
 
         await user.save();
 
-        // Generate JWT Token
         const token = generateToken(user);
 
         res.status(200).json({ token });
@@ -66,6 +65,7 @@ const register = async (req, res) => {
     }
 };
 
+// Controller function to handle user login
 const login = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -88,7 +88,6 @@ const login = async (req, res) => {
             return res.status(400).json({ msg: 'Invalid Password' });
         }
 
-        // Generate JWT Token
         const token = generateToken(user);
 
         res.status(200).json({ token });
@@ -99,6 +98,7 @@ const login = async (req, res) => {
     }
 };
 
+// Controller function to handle password change
 const changePassword = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -115,14 +115,12 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ msg: 'Invalid email or username' });
         }
 
-        // Check if old password is correct
         const isMatch = await bcrypt.compare(oldPassword, user.password);
 
         if (!isMatch) {
             return res.status(400).json({ msg: 'Incorrect old password' });
         }
 
-        // Check if old password matches new password
         if (oldPassword === newPassword) {
             return res.status(400).json({ msg: 'New password must be different from old password' });
         }
@@ -140,6 +138,7 @@ const changePassword = async (req, res) => {
     }
 };
 
+// Controller function to handle forgot password request
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -151,7 +150,6 @@ const forgotPassword = async (req, res) => {
 
         const OTP = generateOTP();
 
-        // Send OTP via email
         const subject = 'Password Reset OTP';
         const text = `Your OTP (One-Time Password) for password reset is: ${OTP}`;
         await sendOTPViaEmail(email, subject, text);
@@ -167,6 +165,7 @@ const forgotPassword = async (req, res) => {
     }
 };
 
+// Controller function to handle password reset
 const resetPassword = async (req, res) => {
     try {
         const { email, OTP, newPassword } = req.body;
@@ -184,7 +183,7 @@ const resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
         user.password = hashedPassword;
-        user.otp = undefined; // Remove OTP from user document
+        user.otp = undefined;
         await user.save();
 
         res.status(200).json({ message: 'Password reset successful' });
@@ -194,6 +193,7 @@ const resetPassword = async (req, res) => {
     }
 };
 
+// Controller function to view user profile
 const viewProfile = async (req, res) => {
     try {
         const { emailOrUsername } = req.body;

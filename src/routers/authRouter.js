@@ -13,5 +13,10 @@ router.post('/register', [
     check('lastName', 'Please enter a valid last name').not().isEmpty()
 ], authController.register);
 
+// Login user route
+router.post('/login', [
+    check('emailOrUsername', 'Please enter a valid email or username').notEmpty(),
+    check('password', 'Password is required').exists()
+], authController.login);
 
 module.exports = router;

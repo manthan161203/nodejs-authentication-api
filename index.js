@@ -1,6 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
+const cors = require('cors');
+
 const authRouters = require('./src/routers/authRouter');
 const connectDB = require('./src/config/db');
 
@@ -12,12 +15,13 @@ const PORT = process.env.PORT;
 // Call the connectDB function to create MongoDB connection
 connectDB();
 
-app.use(express.static('public'));
+app.use(cors());
+
 app.use(express.json());
+app.use(express.static('public'));
+
+app.use(fileUpload());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
 
 app.use('/api/auth', authRouters);
 

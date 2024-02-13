@@ -52,11 +52,53 @@ const register = async (req, res) => {
         res.status(200).json({ token });
     }
     catch (err) {
-        console.error(err);
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+const login = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { emailOrUsername, password } = req.body;
+
+        // Check if user exists by email
+        let user = await User.findOne({ email: emailOrUsername });
+
+        // If user not found by email, check by username
+        if (!user) {
+            user = await User.findOne({ username: emailOrUsername });
+        }
+
+        // Check if user exists
+        if (!user) {
+            return res.status(400).json({ msg: 'Invalid email or username' });
+        }
+
+        // Check if password is correct
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Invalid Password' });
+        }
+
+        // Generate JWT Token
+        const token = generateToken(user);
+
+        res.status(200).json({ token });
+    }
+    catch (err) {
+        console.error(err.message);
         res.status(500).send('Server Error');
     }
 };
 
 module.exports = {
     register,
+    login
 };

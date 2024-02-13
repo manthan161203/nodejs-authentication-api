@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
 const { check } = require('express-validator');
+
+const verifyToken = require('../config/authMiddleware');
+const authController = require('../controllers/authController');
 
 // Register user route
 router.post('/register', [
@@ -18,5 +20,12 @@ router.post('/login', [
     check('emailOrUsername', 'Please enter a valid email or username').notEmpty(),
     check('password', 'Password is required').exists()
 ], authController.login);
+
+// Change password route
+router.post('/change-password', verifyToken, [
+    check('emailOrUsername', 'Please enter a valid email or username').notEmpty(),
+    check('oldPassword', 'Old password is required').notEmpty(),
+    check('newPassword', 'New password is required').notEmpty().isLength({ min: 6 })
+], authController.changePassword);
 
 module.exports = router;

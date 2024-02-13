@@ -67,20 +67,12 @@ const login = async (req, res) => {
 
         const { emailOrUsername, password } = req.body;
 
-        // Check if user exists by email
-        let user = await User.findOne({ email: emailOrUsername });
+        let user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: emailOrUsername }] });
 
-        // If user not found by email, check by username
-        if (!user) {
-            user = await User.findOne({ username: emailOrUsername });
-        }
-
-        // Check if user exists
         if (!user) {
             return res.status(400).json({ msg: 'Invalid email or username' });
         }
 
-        // Check if password is correct
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -98,7 +90,50 @@ const login = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { emailOrUsername, oldPassword, newPassword } = req.body;
+
+        let user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: emailOrUsername }] });
+
+        if (!user) {
+            return res.status(400).json({ msg: 'Invalid email or username' });
+        }
+
+        // Check if old password is correct
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Incorrect old password' });
+        }
+
+        // Check if old password matches new password
+        if (oldPassword === newPassword) {
+            return res.status(400).json({ msg: 'New password must be different from old password' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ msg: 'Password changed successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
+    jwtSecret,
     register,
-    login
+    login,
+    changePassword
 };
